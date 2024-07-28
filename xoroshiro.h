@@ -4,7 +4,7 @@
 ///=============================================================================
 ///                             Xoroshiro 128++
 /// from the Cubiomes library by Cubitect, see:
-/// https://github.com/Cubitect/cubiomes
+/// https://github.com/Cubitect/cubiomes/blob/master/rng.h
 ///=============================================================================
 
 typedef struct Xoroshiro Xoroshiro;
