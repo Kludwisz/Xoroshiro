@@ -2,7 +2,9 @@
 #include "inttypes.h"
 
 ///=============================================================================
-///                               Xoroshiro 128
+///                             Xoroshiro 128++
+/// from the Cubiomes library by Cubitect, see:
+/// https://github.com/Cubitect/cubiomes
 ///=============================================================================
 
 typedef struct Xoroshiro Xoroshiro;
