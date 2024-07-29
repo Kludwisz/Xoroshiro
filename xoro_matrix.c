@@ -70,7 +70,21 @@ void transformToDiagonal(const FXTMatrix* matrix, FXTDiagMatrix* result)
 
 void fastXoroMatrixMul(const FXTMatrix* a, const FXTDiagMatrix* b, FXTMatrix* product)
 {
+    for (int iProduct = 0; iProduct < 128; iProduct++)
+    {
+        uint64_t prod0 = 0ULL, prod1 = 0ULL;
 
+        // hardcoded loops over areas that have data for a
+        // particular column, saves a couple of useless iterations
+        for (int iDiag = 0; iDiag < 255 - 63; iDiag++)
+            prod0 ^= (a->M)[iProduct][0] & (b->M)[iDiag][0];
+            
+        for (int iDiag = 63; iDiag < 255; iDiag++)
+            prod1 ^= (a->M)[iProduct][1] & (b->M)[iDiag][1];
+
+        (product->M)[iProduct][0] = prod0;
+        (product->M)[iProduct][1] = prod1;
+    }
 }
 
 void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* result)
