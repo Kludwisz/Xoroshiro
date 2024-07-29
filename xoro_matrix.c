@@ -16,7 +16,6 @@ void copyFXTMatrix(const FXTMatrix* from, FXTMatrix* to)
 
 void transformToDiagonal(const FXTMatrix* matrix, FXTDiagMatrix* result)
 {
-    static const uint64_t ONLY_TOP_BIT = 0x8000'0000'0000'0000ULL;
     int iDiag = 0;
 
     // create lower diagonals (without main)
@@ -100,6 +99,8 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
 
     while (power)
     {
+        bool isDiagonalReady = false;
+
         if (power & 1ULL)
         {
             if (isResultZero)
@@ -108,7 +109,12 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
                 isResultZero = false;
             }
             else
-                fastXoroMatrixMul(currentResult, currentPower, nextResult);
+            {
+                transformToDiagonal(currentPower, &diag);
+                isDiagonalReady = true;
+                fastXoroMatrixMul(currentResult, &diag, nextResult);
+            }
+                
 
             // swap next and current result, clearing space for the next operations
             temp = currentResult;
@@ -116,8 +122,10 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
             nextResult = temp;
         }
 
-        // make a diagonal matrix for the current power
-        transformToDiagonal(currentPower, &diag);
+        // make a diagonal matrix for the current power (if needed)
+        if (!isDiagonalReady)
+            transformToDiagonal(currentPower, &diag);
+
         // perform a very fast, quadratic matrix multiplication
         fastXoroMatrixMul(currentPower, &diag, nextPower);
 
@@ -133,4 +141,34 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
 
     // no dynamically allocated data, C will handle the
     // struct deallocations on its own
+}
+
+// ---------------------------------------
+
+void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm)
+{
+    uint64_t newLo = 0ULL, newHi = 0ULL;
+
+    uint64_t maskJ = 1ULL;
+    for (int j = 0; j < 64; j++)
+    {
+        for (int i = 0; i < 128; i++)
+        {
+            newLo ^= ((fxtm->M)[i][0] & maskJ & state->lo);
+        }
+        maskJ <<= 1;
+    }
+
+    maskJ = 1ULL;
+    for (int j = 64; j < 128; j++)
+    {
+        for (int i = 0; i < 128; i++)
+        {
+            newHi ^= ((fxtm->M)[i][1] & maskJ & state->hi);
+        }
+        maskJ <<= 1;
+    }
+
+    state->lo = newLo;
+    state->hi = newHi;
 }

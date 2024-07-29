@@ -1,4 +1,5 @@
 #include "bit_matrix.h"
+#include "xoro_matrix.h"
 #include "xoroshiro.h"
 #include "inttypes.h"
 #include "stdio.h"
@@ -172,7 +173,66 @@ ErrType testMatrixAdvancement(const int advanceCount)
 }
 
 
+// -----------------------------------------------------------------------------------
+
+
+void getStandardFXTM(FXTMatrix *fxtm)
+{
+    BitMatrix mx;
+    allocMatrix(&mx, 128, 128);
+    (void)createXoroshiroTransformationMatrix(&mx);
+
+    // copy bit data to FXTM
+    for (int i = 0; i < 128; i++)
+    {
+        uint64_t low = 0ULL, high = 0ULL;
+
+        for (int j = 0; j < 64; j++)
+        {
+            low <<= 1;
+            low |= (mx.M)[i][j];
+        }
+        for (int j = 64; j < 128; j++)
+        {
+            high <<= 1;
+            high |= (mx.M)[i][j];
+        }
+
+        (fxtm->M)[i][0] = low;
+        (fxtm->M)[i][1] = high;
+    }
+
+    deallocMatrix(&mx);
+}
+
+void printStandardFXTM()
+{
+    FXTMatrix stdXrsr = { 0 };
+    getStandardFXTM(&stdXrsr);
+
+    printf("{{\n");
+    for (int i = 0; i < 128; i++)
+    {
+        printf("{ %lluULL, %lluULL }", stdXrsr.M[i][0], stdXrsr.M[i][1]);
+        printf(i != 127 ? ",\n" : "\n");
+    }
+    printf("}};\n");
+}
+
+
 int main() {
-    ErrType err = testMatrixAdvancement(10);
-    printf("main(): %s.\n", getErrorMessage(err));
+    // ErrType err = testMatrixAdvancement(10);
+    // printf("main(): %s.\n", getErrorMessage(err));
+    // return err;
+    printStandardFXTM();
+
+    // Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
+    // Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
+    // xNextLong(&x);
+    // advanceXoroshiroFXTM(&x2, &XOROSHIRO_STANDARD_MATRIX);
+
+    // printXoro(&x);
+    // printXoro(&x2);
+
+    return 0;
 }
