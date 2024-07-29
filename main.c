@@ -224,15 +224,15 @@ int main() {
     // ErrType err = testMatrixAdvancement(10);
     // printf("main(): %s.\n", getErrorMessage(err));
     // return err;
-    printStandardFXTM();
+    // printStandardFXTM();
 
-    // Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
-    // Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
-    // xNextLong(&x);
-    // advanceXoroshiroFXTM(&x2, &XOROSHIRO_STANDARD_MATRIX);
+    Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
+    Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
+    xNextLong(&x);
+    advanceXoroshiroFXTM(&x2, &XOROSHIRO_STANDARD_MATRIX);
 
-    // printXoro(&x);
-    // printXoro(&x2);
+    printXoro(&x);
+    printXoro(&x2);
 
     return 0;
 }

@@ -144,29 +144,43 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
 }
 
 // ---------------------------------------
+#include "stdio.h"
 
+// TODO optimize the hell out of this
 void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm)
 {
     uint64_t newLo = 0ULL, newHi = 0ULL;
 
-    uint64_t maskJ = 1ULL;
     for (int j = 0; j < 64; j++)
     {
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < 64; i++)
         {
-            newLo ^= ((fxtm->M)[i][0] & maskJ & state->lo);
+            uint64_t bit1 = ((fxtm->M)[i][0] >> j) & 1ULL;
+            uint64_t bit2 = (state->lo >> (63 - i)) & 1ULL;
+            newLo ^= (bit1 & bit2) << j;
         }
-        maskJ <<= 1;
+        for (int i = 0; i < 64; i++)
+        {
+            uint64_t bit1 = ((fxtm->M)[i+64][0] >> j) & 1ULL;
+            uint64_t bit2 = (state->hi >> (63 - i)) & 1ULL;
+            newLo ^= (bit1 & bit2) << j;
+        }
     }
 
-    maskJ = 1ULL;
-    for (int j = 64; j < 128; j++)
+    for (int j = 0; j < 64; j++)
     {
-        for (int i = 0; i < 128; i++)
+        for (int i = 0; i < 64; i++)
         {
-            newHi ^= ((fxtm->M)[i][1] & maskJ & state->hi);
+            uint64_t bit1 = ((fxtm->M)[i][1] >> j) & 1ULL;
+            uint64_t bit2 = (state->lo >> (63 - i)) & 1ULL;
+            newHi ^= (bit1 & bit2) << j;
         }
-        maskJ <<= 1;
+        for (int i = 0; i < 64; i++)
+        {
+            uint64_t bit1 = ((fxtm->M)[i+64][1] >> j) & 1ULL;
+            uint64_t bit2 = (state->hi >> (63 - i)) & 1ULL;
+            newHi ^= (bit1 & bit2) << j;
+        }
     }
 
     state->lo = newLo;
