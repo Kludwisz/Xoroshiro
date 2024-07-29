@@ -9,17 +9,17 @@
 
 typedef struct FXTMatrix FXTMatrix;
 struct FXTMatrix {
-    uint64_t M[128][2];
+    uint64_t M[2][2][64];
 };
 
-typedef struct FXTDiagMatrix FXTDiagMatrix;
-struct FXTDiagMatrix {
-    uint64_t M[128 * 2 - 1][2];
-};
+// typedef struct FXTDiagMatrix FXTDiagMatrix;
+// struct FXTDiagMatrix {
+//     uint64_t M[128 * 2 - 1][2];
+// };
 
 void copyFXTMatrix(const FXTMatrix *from, FXTMatrix *to);
-void transformToDiagonal(const FXTMatrix *matrix, FXTDiagMatrix *result);
-void fastXoroMatrixMul(const FXTMatrix *a, const FXTDiagMatrix *b, FXTMatrix *product);
+//void transformToDiagonal(const FXTMatrix *matrix, FXTDiagMatrix *result);
+//void fastXoroMatrixMul(const FXTMatrix *a, const FXTDiagMatrix *b, FXTMatrix *product);
 void fastXoroMatrixPower(const FXTMatrix *matrix, uint64_t power, FXTMatrix *result);
 
 void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm);
@@ -27,6 +27,7 @@ void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm);
 
 // ------------------------------------------------------------------------------------
 
+/*
 static const FXTMatrix XOROSHIRO_STANDARD_MATRIX = {{
     { 9223653511831486464ULL, 134217728ULL },
     { 4611826755915743232ULL, 67108864ULL },
@@ -157,3 +158,4 @@ static const FXTMatrix XOROSHIRO_STANDARD_MATRIX = {{
     { 4194306ULL, 536870912ULL },
     { 2097153ULL, 268435456ULL }
 }};
+/**/

@@ -9,10 +9,13 @@
 
 void copyFXTMatrix(const FXTMatrix* from, FXTMatrix* to)
 {
-    for (int i = 0; i < 128; i++)
+    for (int qi = 0; qi < 2; qi++)
     {
-        (to->M)[i][0] = (from->M)[i][0];
-        (to->M)[i][1] = (from->M)[i][1];
+        for (int qj = 0; qj < 2; qj++)
+        {
+            for (int k = 0; k < 64; k++)
+                (to->M)[qi][qj][k] = (from->M)[qi][qj][k];
+        }
     }
 }
 
@@ -91,6 +94,57 @@ void fastXoroMatrixMul(const FXTMatrix* a, const FXTDiagMatrix* b, FXTMatrix* pr
     }
 }
 */
+
+void transposeFXTM(const FXTMatrix* matrix, FXTMatrix* transposed)
+{
+    for (int j = 0; j < 64; j++)
+    {
+        const int sh = 63-j;
+        uint64_t val = 0ULL;
+
+        for (int i = 0; i < 64; i++)
+        {
+            val <<= 1;
+            val |= ((matrix->M)[i][0] >> sh) & 1ULL;
+        }
+        (transposed->M)[j][0] = val;
+
+        val = 0ULL;
+        for (int i = 64; i < 128; i++)
+        {
+            val <<= 1;
+            val |= ((matrix->M)[i][0] >> sh) & 1ULL;
+        }
+        (transposed->M)[j][1] = val;
+    }
+
+    for (int j = 0; j < 64; j++)
+    {
+        const int sh = 63-j;
+        uint64_t val = 0ULL;
+
+        for (int i = 0; i < 64; i++)
+        {
+            val <<= 1;
+            val |= ((matrix->M)[i][1] >> sh) & 1ULL;
+        }
+        (transposed->M)[j+64][0] = val;
+
+        val = 0ULL;
+        for (int i = 64; i < 128; i++)
+        {
+            val <<= 1;
+            val |= ((matrix->M)[i][1] >> sh) & 1ULL;
+        }
+        (transposed->M)[j+64][1] = val;
+    }
+}
+
+// aT should be the FXTM trasnposition of b
+void multiplyFTXM(const FXTMatrix* aT, const FXTMatrix* b, FXTMatrix* c)
+{
+    // main diagonal
+}
 
 void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* result)
 {
