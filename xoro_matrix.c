@@ -1,6 +1,10 @@
 #include "xoro_matrix.h"
 #include "stdbool.h"
 
+#include "stdio.h"
+#define DEBUG_ON true
+#define DEBUG(...) { if (DEBUG_ON) { printf(__VA_ARGS__); } }
+
 // -----------------------------------------------------------
 
 void copyFXTMatrix(const FXTMatrix* from, FXTMatrix* to)
@@ -14,6 +18,7 @@ void copyFXTMatrix(const FXTMatrix* from, FXTMatrix* to)
 
 // -----------------------------------------------------------
 
+/*
 void transformToDiagonal(const FXTMatrix* matrix, FXTDiagMatrix* result)
 {
     int iDiag = 0;
@@ -25,7 +30,7 @@ void transformToDiagonal(const FXTMatrix* matrix, FXTDiagMatrix* result)
         int i = i0;
         int j = 0;
         int col = 0;
-        while (i >= 127)
+        while (i <= 127)
         {
             if (j >= 64)
             {
@@ -85,8 +90,9 @@ void fastXoroMatrixMul(const FXTMatrix* a, const FXTDiagMatrix* b, FXTMatrix* pr
         (product->M)[iProduct][1] = prod1;
     }
 }
+*/
 
-void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* result)
+void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* result)
 {
     FXTMatrix res1 = { 0 }, res2 = { 0 };
     FXTMatrix pow1 = { 0 }, pow2 = { 0 };
@@ -103,37 +109,49 @@ void xoroMatrixFastPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
 
         if (power & 1ULL)
         {
+            DEBUG("power = %llu\n", power);
             if (isResultZero)
             {
                 copyFXTMatrix(currentPower, nextResult);
+                DEBUG("copied successfully\n");
                 isResultZero = false;
             }
             else
             {
                 transformToDiagonal(currentPower, &diag);
+                DEBUG("else: diagonalized successfully\n");
                 isDiagonalReady = true;
                 fastXoroMatrixMul(currentResult, &diag, nextResult);
+                DEBUG("else: performed fast mul successfully\n");
             }
                 
-
             // swap next and current result, clearing space for the next operations
             temp = currentResult;
             currentResult = nextResult;
             nextResult = temp;
         }
 
-        // make a diagonal matrix for the current power (if needed)
-        if (!isDiagonalReady)
-            transformToDiagonal(currentPower, &diag);
+        // only calculate next power when needed
+        if (power >>= 1)
+        {
+            // make a diagonal matrix for the current power (if needed)
+            if (!isDiagonalReady) {
+                DEBUG("power = %llu", power)
+                transformToDiagonal(currentPower, &diag);
+                for (int i = 0; i < 255; i++)
+                {
+                    printf("%-4llx %-4llx\n", (diag.M)[i][0], (diag.M)[i][1]);
+                }
+            }
 
-        // perform a very fast, quadratic matrix multiplication
-        fastXoroMatrixMul(currentPower, &diag, nextPower);
+            // perform a very fast, quadratic matrix multiplication
+            fastXoroMatrixMul(currentPower, &diag, nextPower);
 
-        // swap next and current power, making space for the next operations
-        temp = currentPower;
-        currentPower = nextPower;
-        nextPower = temp;
-        power >>= 1;
+            // swap next and current power, making space for the next operations
+            temp = currentPower;
+            currentPower = nextPower;
+            nextPower = temp;
+        }
     }
 
     // copy result to output

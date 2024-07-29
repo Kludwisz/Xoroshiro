@@ -20,7 +20,7 @@ struct FXTDiagMatrix {
 void copyFXTMatrix(const FXTMatrix *from, FXTMatrix *to);
 void transformToDiagonal(const FXTMatrix *matrix, FXTDiagMatrix *result);
 void fastXoroMatrixMul(const FXTMatrix *a, const FXTDiagMatrix *b, FXTMatrix *product);
-void xoroMatrixFastPower(const FXTMatrix *matrix, uint64_t power, FXTMatrix *result);
+void fastXoroMatrixPower(const FXTMatrix *matrix, uint64_t power, FXTMatrix *result);
 
 void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm);
 

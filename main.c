@@ -226,10 +226,16 @@ int main() {
     // return err;
     // printStandardFXTM();
 
+    const int pow = 2;
+
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
     Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
-    xNextLong(&x);
-    advanceXoroshiroFXTM(&x2, &XOROSHIRO_STANDARD_MATRIX);
+    for (int i = 0; i < pow; i++)
+        xNextLong(&x);
+
+    FXTMatrix fxtm = { 0 };
+    fastXoroMatrixPower(&XOROSHIRO_STANDARD_MATRIX, pow, &fxtm);
+    advanceXoroshiroFXTM(&x2, &fxtm);
 
     printXoro(&x);
     printXoro(&x2);
