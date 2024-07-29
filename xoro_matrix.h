@@ -19,7 +19,7 @@ struct FXTMatrix {
     uint64_t M[2][2][64];
 };
 
-typedef struct XMatrix;
+typedef struct XMatrix XMatrix;
 struct XMatrix {
     uint128_t M[128];
 };

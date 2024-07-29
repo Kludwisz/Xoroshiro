@@ -19,9 +19,6 @@ void copyFXTM(const FXTMatrix* from, FXTMatrix* to)
     }
 }
 
-// -----------------------------------------------------------
-
-
 void transposeFXTM(const FXTMatrix* matrix, FXTMatrix* transposed)
 {
     for (int qi = 0; qi < 2; qi++) for (int qj = 0; qj < 2; qj++)
@@ -41,6 +38,8 @@ void transposeFXTM(const FXTMatrix* matrix, FXTMatrix* transposed)
     }
 }
 
+// -----------------------------------------------------------
+
 void clearQuadrant(uint64_t* quad)
 {
     for (int i = 0; i < 64; i++)
@@ -55,10 +54,6 @@ void multiplyQuadrant(const uint64_t firstQuad[], const uint64_t secondQuad[], u
 // aT should be the FXTM trasnposition of b
 void multiplyFXTM(const FXTMatrix* aT, const FXTMatrix* b, FXTMatrix* c)
 {
-    // In the future, if 128-bit integers are supported by more CPUs
-    // natively, this entire function could be reduced to just a single 
-    // quadrant multiplication, speeding it up significantly.
-
     // 0,0
     clearQuadrant(c->M[0][0]);
     multiplyQuadrant(aT->M[0][0], b->M[0][0], c->M[0][0]);
@@ -160,4 +155,42 @@ void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm)
 
     state->lo = newState[0];
     state->hi = newState[1];
+}
+
+// --------------------------------------------------------------
+// For 128-bit integers
+// --------------------------------------------------------------
+
+void clearXM(XMatrix* xm)
+{
+    for (int i = 0; i < 128; i++)
+        (xm->M)[i] = 0;
+}
+
+void copyXM(const XMatrix* from, XMatrix* to)
+{
+    for (int k = 0; k < 128; k++)
+        (to->M)[k] = (from->M)[k];
+}
+
+void transposeXM(const XMatrix* matrix, XMatrix* transposed)
+{
+    for (int j = 0; j < 128; j++)
+    {
+        const int sh = 128-j;
+        uint128_t val = 0;
+
+        for (int i = 0; i < 128; i++)
+        {
+            val <<= 1;
+            val |= ((matrix->M)[i] >> sh) & 1;
+        }
+
+        (transposed->M)[j] = val;
+    }
+}
+
+void multiplyXM(const XMatrix* aT, const XMatrix* b, XMatrix* res)
+{
+    // TODO
 }
