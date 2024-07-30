@@ -261,5 +261,10 @@ int main() {
     printXoro(&x);
     printXoro(&x2);
 
+    fastXoroMatrixPower128(&XOROSHIRO_STANDARD_FXTM, ONLY_TOP_BIT, 0ULL, &fxtm);
+    advanceXoroshiroFXTM(&x2, &fxtm); // 2^127
+    advanceXoroshiroFXTM(&x2, &fxtm); // 2^127
+    printXoro(&x2);
+
     return 0;
 }
