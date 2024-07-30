@@ -247,7 +247,7 @@ int main() {
     //     printf("%d\n", __builtin_parityll(i));
     // }
 
-    const int pow = 8;
+    const int pow = 12345;
 
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
     Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };

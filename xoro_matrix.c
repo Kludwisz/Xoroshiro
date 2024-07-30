@@ -77,7 +77,9 @@ void multiplyFXTM(const FXTMatrix* a, const FXTMatrix* bT, FXTMatrix* c)
         for (int i = 0; i < 64; i++)
         {
             uint64_t res = 0ULL;
+            // these will be constant throughout the j-loop
             const uint64_t aLo = a->M[qi][0][i], aHi = a->M[qi][1][i];
+
             for (int j = 0; j < 64; j++)
             {
                 res <<= 1;
@@ -121,7 +123,7 @@ void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
                 transposeFXTM(currentPower, &transposed);
                 transpositionDone = true;
                 DEBUG("else: transposed successfully\n");
-                multiplyFXTM(currentPower, &transposed, nextResult);
+                multiplyFXTM(currentResult, &transposed, nextResult);
                 DEBUG("else: performed fast mul successfully\n");
             }
                 
@@ -139,13 +141,10 @@ void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
             if (!transpositionDone)
                 transposeFXTM(currentPower, &transposed);
 
-            //for (int i = 0; i < 64; i++)
-            //    DEBUG("%llu\n", transposed.M[0][0][i])
-
             // perform a very fast, quasi-quadratic matrix multiplication
             multiplyFXTM(currentPower, &transposed, nextPower);
-            for (int i = 0; i < 64; i++)
-                DEBUG("%llu\n", nextPower->M[0][0][i])
+            //for (int i = 0; i < 64; i++)
+            //    DEBUG("%llu\n", nextPower->M[0][0][i])
 
             // swap next and current power, making space for the next operations
             temp = currentPower;
