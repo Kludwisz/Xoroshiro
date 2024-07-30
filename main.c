@@ -118,7 +118,7 @@ void printStateAsInt(const BitMatrix* const state)
 
 void printXoro(const Xoroshiro* const xr)
 {
-    printf("State after Xoroshiro nextLong(s):    ( %llu , %llu )\n", xr->lo, xr->hi);
+    printf("Current Xoroshiro state:    ( %llu , %llu )\n", xr->lo, xr->hi);
 }
 
 // -----------------------------------------------------------------------------------
@@ -229,24 +229,27 @@ void printStandardFXTM()
 
 
 int main() {
-    const int pow = 12345;
-
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
     Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
-    for (int i = 0; i < pow; i++)
-        xNextLong(&x);
 
     FXTMatrix fxtm = { 0 };
-    fastXoroMatrixPower(&XOROSHIRO_STANDARD_FXTM, pow, &fxtm);
-    advanceXoroshiroFXTM(&x2, &fxtm);
-
-    printXoro(&x);
-    printXoro(&x2);
 
     fastXoroMatrixPower128(&XOROSHIRO_STANDARD_FXTM, ONLY_TOP_BIT, 0ULL, &fxtm);
     advanceXoroshiroFXTM(&x2, &fxtm); // 2^127
     advanceXoroshiroFXTM(&x2, &fxtm); // 2^127
+    // advanced by 2^128, should be equivalent to 1
+    // as the period is 2^128 - 1
     printXoro(&x2);
+    
+    xNextLong(&x);
+    printXoro(&x);
+
+    Xoroshiro x3 = { 123456789ULL, 987654321ULL };
+    fastXoroMatrixPower128(&XOROSHIRO_STANDARD_FXTM, FULL_64, FULL_64, &fxtm);
+
+    printXoro(&x3);
+    advanceXoroshiroFXTM(&x3, &fxtm); // 2^128 - 1
+    printXoro(&x3);
 
     return 0;
 }

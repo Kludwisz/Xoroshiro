@@ -2,7 +2,8 @@
 #include "xoroshiro.h"
 #include "inttypes.h"
 
-#define ONLY_TOP_BIT (0x8000000000000000ULL)
+#define ONLY_TOP_BIT    (0x8000000000000000ULL)
+#define FULL_64         (0xffffffffffffffffULL)
 
 // structures for the fast xoroshiro transform
 // matrix multiplication procedure
