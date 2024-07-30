@@ -172,9 +172,7 @@ ErrType testMatrixAdvancement(const int advanceCount)
     return UNEXPECTED_ERROR;
 }
 
-
 // -----------------------------------------------------------------------------------
-
 
 void getStandardFXTM(FXTMatrix *fxtm)
 {
@@ -231,22 +229,6 @@ void printStandardFXTM()
 
 
 int main() {
-    #ifndef __SIZEOF_INT128__
-        printf("Your compiler does not provide 128-bit integer support,\n");
-        printf("which is required to run this code. Use GCC, version 4.6 or above.\n");
-        return 0;
-    #endif
-
-    // ErrType err = testMatrixAdvancement(10);
-    // printf("main(): %s.\n", getErrorMessage(err));
-    // return err;
-    // printStandardFXTM();
-
-    // for (uint64_t i = 21648921692874ULL; i < 21648921692874ULL + 10; i++)
-    // {
-    //     printf("%d\n", __builtin_parityll(i));
-    // }
-
     const int pow = 12345;
 
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
