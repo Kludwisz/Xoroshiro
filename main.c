@@ -176,48 +176,58 @@ ErrType testMatrixAdvancement(const int advanceCount)
 // -----------------------------------------------------------------------------------
 
 
-// void getStandardFXTM(FXTMatrix *fxtm)
-// {
-//     BitMatrix mx;
-//     allocMatrix(&mx, 128, 128);
-//     (void)createXoroshiroTransformationMatrix(&mx);
+void getStandardFXTM(FXTMatrix *fxtm)
+{
+    BitMatrix mx;
+    allocMatrix(&mx, 128, 128);
+    (void)createXoroshiroTransformationMatrix(&mx);
 
-//     // copy bit data to FXTM
-//     for (int i = 0; i < 128; i++)
-//     {
-//         uint64_t low = 0ULL, high = 0ULL;
+    // copy bit data to FXTM
+    for (int i = 0; i < 128; i++)
+    {
+        uint64_t low = 0ULL, high = 0ULL;
 
-//         for (int j = 0; j < 64; j++)
-//         {
-//             low <<= 1;
-//             low |= (mx.M)[i][j];
-//         }
-//         for (int j = 64; j < 128; j++)
-//         {
-//             high <<= 1;
-//             high |= (mx.M)[i][j];
-//         }
+        for (int j = 0; j < 64; j++)
+        {
+            low <<= 1;
+            low |= (mx.M)[i][j];
+        }
+        for (int j = 64; j < 128; j++)
+        {
+            high <<= 1;
+            high |= (mx.M)[i][j];
+        }
 
-//         (fxtm->M)[i][0] = low;
-//         (fxtm->M)[i][1] = high;
-//     }
+        (fxtm->M)[i / 64][0][i & 63] = low;
+        (fxtm->M)[i / 64][1][i & 63] = high;
+    }
 
-//     deallocMatrix(&mx);
-// }
+    deallocMatrix(&mx);
+}
 
-// void printStandardFXTM()
-// {
-//     FXTMatrix stdXrsr = { 0 };
-//     getStandardFXTM(&stdXrsr);
+void printStandardFXTM()
+{
+    FXTMatrix stdXrsr = { 0 };
+    getStandardFXTM(&stdXrsr);
 
-//     printf("{{\n");
-//     for (int i = 0; i < 128; i++)
-//     {
-//         printf("{ %lluULL, %lluULL }", stdXrsr.M[i][0], stdXrsr.M[i][1]);
-//         printf(i != 127 ? ",\n" : "\n");
-//     }
-//     printf("}};\n");
-// }
+    for (int qi = 0; qi < 2; qi++) 
+    {
+        printf("{\n");
+        for (int qj = 0; qj < 2; qj++)
+        {
+            printf("{\n");
+
+            for (int i = 0; i < 64; i++)
+            {
+                printf("%lluULL", stdXrsr.M[qi][qj][i]);
+                printf(i != 63 ? ",\n" : "\n");
+            }
+
+            printf(qj == 1 ? "}\n" : "},\n");
+        }
+        printf(qi == 1 ? "};\n" : "},\n");
+    }
+}
 
 
 int main() {
@@ -232,19 +242,24 @@ int main() {
     // return err;
     // printStandardFXTM();
 
-    // const int pow = 2;
+    // for (uint64_t i = 21648921692874ULL; i < 21648921692874ULL + 10; i++)
+    // {
+    //     printf("%d\n", __builtin_parityll(i));
+    // }
 
-    // Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
-    // Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
-    // for (int i = 0; i < pow; i++)
-    //     xNextLong(&x);
+    const int pow = 8;
 
-    // FXTMatrix fxtm = { 0 };
-    // fastXoroMatrixPower(&XOROSHIRO_STANDARD_MATRIX, pow, &fxtm);
-    // advanceXoroshiroFXTM(&x2, &fxtm);
+    Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
+    Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
+    for (int i = 0; i < pow; i++)
+        xNextLong(&x);
 
-    // printXoro(&x);
-    // printXoro(&x2);
+    FXTMatrix fxtm = { 0 };
+    fastXoroMatrixPower(&XOROSHIRO_STANDARD_FXTM, pow, &fxtm);
+    advanceXoroshiroFXTM(&x2, &fxtm);
+
+    printXoro(&x);
+    printXoro(&x2);
 
     return 0;
 }

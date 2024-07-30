@@ -2,7 +2,7 @@
 #include "stdbool.h"
 
 #include "stdio.h"
-#define DEBUG_ON true
+#define DEBUG_ON false
 #define DEBUG(...) { if (DEBUG_ON) { printf(__VA_ARGS__); } }
 
 // -----------------------------------------------------------
@@ -40,36 +40,56 @@ void transposeFXTM(const FXTMatrix* matrix, FXTMatrix* transposed)
 
 // -----------------------------------------------------------
 
-void clearQuadrant(uint64_t* quad)
-{
-    for (int i = 0; i < 64; i++)
-        quad[i] = 0ULL;
-}
+// void clearQuadrant(uint64_t* quad)
+// {
+//     for (int i = 0; i < 64; i++)
+//         quad[i] = 0ULL;
+// }
 
-void multiplyQuadrant(const uint64_t firstQuad[], const uint64_t secondQuad[], uint64_t resultQuad[])
-{
-    // TODO
-}
+// void multiplyQuadrant(const uint64_t firstQuad[], const uint64_t secondQuad[], uint64_t resultQuad[])
+// {
+//     // TODO
+// }
 
-// aT should be the FXTM trasnposition of b
-void multiplyFXTM(const FXTMatrix* aT, const FXTMatrix* b, FXTMatrix* c)
+// bT is the FXTM "transposition" of a
+void multiplyFXTM(const FXTMatrix* a, const FXTMatrix* bT, FXTMatrix* c)
 {
     // 0,0
-    clearQuadrant(c->M[0][0]);
-    multiplyQuadrant(aT->M[0][0], b->M[0][0], c->M[0][0]);
-    multiplyQuadrant(aT->M[0][1], b->M[0][1], c->M[0][0]);
-    // 0,1
-    clearQuadrant(c->M[0][1]);
-    multiplyQuadrant(aT->M[1][0], b->M[0][0], c->M[0][1]);
-    multiplyQuadrant(aT->M[1][1], b->M[0][1], c->M[0][1]);
-    // 1,0
-    clearQuadrant(c->M[1][0]);
-    multiplyQuadrant(aT->M[0][0], b->M[1][0], c->M[1][0]);
-    multiplyQuadrant(aT->M[0][1], b->M[1][1], c->M[1][0]);
-    // 1,1
-    clearQuadrant(c->M[1][1]);
-    multiplyQuadrant(aT->M[1][0], b->M[1][0], c->M[1][1]);
-    multiplyQuadrant(aT->M[1][1], b->M[1][1], c->M[1][1]);
+    // clearQuadrant(c->M[0][0]);
+    // multiplyQuadrant(aT->M[0][0], b->M[0][0], c->M[0][0]);
+    // multiplyQuadrant(aT->M[0][1], b->M[0][1], c->M[0][0]);
+    // // 0,1
+    // clearQuadrant(c->M[0][1]);
+    // multiplyQuadrant(aT->M[1][0], b->M[0][0], c->M[0][1]);
+    // multiplyQuadrant(aT->M[1][1], b->M[0][1], c->M[0][1]);
+    // // 1,0
+    // clearQuadrant(c->M[1][0]);
+    // multiplyQuadrant(aT->M[0][0], b->M[1][0], c->M[1][0]);
+    // multiplyQuadrant(aT->M[0][1], b->M[1][1], c->M[1][0]);
+    // // 1,1
+    // clearQuadrant(c->M[1][1]);
+    // multiplyQuadrant(aT->M[1][0], b->M[1][0], c->M[1][1]);
+    // multiplyQuadrant(aT->M[1][1], b->M[1][1], c->M[1][1]);
+
+    // calculate each bit in the result matrix separately
+    for (int qi = 0; qi < 2; qi++) for (int qj = 0; qj < 2; qj++)
+    {
+        for (int i = 0; i < 64; i++)
+        {
+            uint64_t res = 0ULL;
+            const uint64_t aLo = a->M[qi][0][i], aHi = a->M[qi][1][i];
+            for (int j = 0; j < 64; j++)
+            {
+                res <<= 1;
+                const uint64_t mulXor = (aLo & bT->M[0][qj][j]) ^ (aHi & bT->M[1][qj][j]);
+                const int newBit = __builtin_parityll(mulXor); // aka: GCC, do your thing!
+                res |= newBit; 
+            }
+
+            (c->M)[qi][qj][i] = res;
+            DEBUG("%llx\n", res);
+        }
+    }
 }
 
 void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* result)
@@ -85,9 +105,11 @@ void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
 
     while (power)
     {
+        bool transpositionDone = false;
+
         if (power & 1ULL)
         {
-            DEBUG("power = %llu\n", power);
+            DEBUG("if power & 1:  power = %llu\n", power);
             if (isResultZero)
             {
                 copyFXTM(currentPower, nextResult);
@@ -96,9 +118,10 @@ void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
             }
             else
             {
-                transposeFXTM(currentResult, &transposed);
+                transposeFXTM(currentPower, &transposed);
+                transpositionDone = true;
                 DEBUG("else: transposed successfully\n");
-                multiplyFXTM(&transposed, currentPower, nextResult);
+                multiplyFXTM(currentPower, &transposed, nextResult);
                 DEBUG("else: performed fast mul successfully\n");
             }
                 
@@ -112,10 +135,17 @@ void fastXoroMatrixPower(const FXTMatrix* matrix, uint64_t power, FXTMatrix* res
         if (power >>= 1)
         {
             // create the transposition of currentPower
-            DEBUG("power = %llu", power)
-            transposeFXTM(currentPower, &transposed);
+            DEBUG("calc next:  power = %llu\n", power)
+            if (!transpositionDone)
+                transposeFXTM(currentPower, &transposed);
+
+            //for (int i = 0; i < 64; i++)
+            //    DEBUG("%llu\n", transposed.M[0][0][i])
+
             // perform a very fast, quasi-quadratic matrix multiplication
-            multiplyFXTM(&transposed, currentPower, nextPower);
+            multiplyFXTM(currentPower, &transposed, nextPower);
+            for (int i = 0; i < 64; i++)
+                DEBUG("%llu\n", nextPower->M[0][0][i])
 
             // swap next and current power, making space for the next operations
             temp = currentPower;
@@ -161,36 +191,36 @@ void advanceXoroshiroFXTM(Xoroshiro *state, const FXTMatrix* fxtm)
 // For 128-bit integers
 // --------------------------------------------------------------
 
-void clearXM(XMatrix* xm)
-{
-    for (int i = 0; i < 128; i++)
-        (xm->M)[i] = 0;
-}
+// void clearXM(XMatrix* xm)
+// {
+//     for (int i = 0; i < 128; i++)
+//         (xm->M)[i] = 0;
+// }
 
-void copyXM(const XMatrix* from, XMatrix* to)
-{
-    for (int k = 0; k < 128; k++)
-        (to->M)[k] = (from->M)[k];
-}
+// void copyXM(const XMatrix* from, XMatrix* to)
+// {
+//     for (int k = 0; k < 128; k++)
+//         (to->M)[k] = (from->M)[k];
+// }
 
-void transposeXM(const XMatrix* matrix, XMatrix* transposed)
-{
-    for (int j = 0; j < 128; j++)
-    {
-        const int sh = 128-j;
-        uint128_t val = 0;
+// void transposeXM(const XMatrix* matrix, XMatrix* transposed)
+// {
+//     for (int j = 0; j < 128; j++)
+//     {
+//         const int sh = 128-j;
+//         uint128_t val = 0;
 
-        for (int i = 0; i < 128; i++)
-        {
-            val <<= 1;
-            val |= ((matrix->M)[i] >> sh) & 1;
-        }
+//         for (int i = 0; i < 128; i++)
+//         {
+//             val <<= 1;
+//             val |= ((matrix->M)[i] >> sh) & 1;
+//         }
 
-        (transposed->M)[j] = val;
-    }
-}
+//         (transposed->M)[j] = val;
+//     }
+// }
 
-void multiplyXM(const XMatrix* aT, const XMatrix* b, XMatrix* res)
-{
-    // TODO
-}
+// void multiplyXM(const XMatrix* aT, const XMatrix* b, XMatrix* res)
+// {
+//     // TODO
+// }
