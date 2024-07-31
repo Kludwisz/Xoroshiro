@@ -1,8 +1,8 @@
 #include "bit_matrix.h"
 #include "xoro_matrix.h"
 #include "xoroshiro.h"
-#include "inttypes.h"
-#include "stdio.h"
+#include "utils.h"
+const bool DEBUG_MODE = false;
 
 #define CHECKED_OPERATION(code) \
 { \

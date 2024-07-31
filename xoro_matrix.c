@@ -1,9 +1,6 @@
 #include "xoro_matrix.h"
-#include "stdbool.h"
-
-#include "stdio.h"
-#define DEBUG_ON false
-#define DEBUG(...) { if (DEBUG_ON) { printf(__VA_ARGS__); } }
+#include "utils.h"
+const bool DEBUG_MODE = false;
 
 // -----------------------------------------------------------
 

@@ -1,5 +1,7 @@
 #include "bit_matrix.h"
-#include "stdio.h"
+#include "utils.h"
+const bool DEBUG_MODE = false;
+
 
 const char* getErrorMessage(ErrType err) {
     static const char* MSG[] = {
