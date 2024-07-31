@@ -1,6 +1,6 @@
 #include "gaussian_elim.h"
 #include "utils.h"
-const bool DEBUG_MODE = false;
+static const bool DEBUG_MODE = false;
 
 
 void initEquation(Equation *eq, uint64_t lhsLo, uint64_t lhsHi, int rhs)

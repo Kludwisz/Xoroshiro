@@ -1,6 +1,6 @@
 #include "bit_matrix.h"
 #include "utils.h"
-const bool DEBUG_MODE = false;
+static const bool DEBUG_MODE = false;
 
 
 const char* getErrorMessage(ErrType err) {
