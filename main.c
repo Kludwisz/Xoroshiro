@@ -1,6 +1,7 @@
 #include "bit_matrix.h"
 #include "xoro_matrix.h"
 #include "xoroshiro.h"
+#include "gaussian_elim.h"
 #include "utils.h"
 static const bool DEBUG_MODE = false;
 
@@ -228,8 +229,8 @@ void printStandardFXTM()
     }
 }
 
-
-int main() {
+int testFXTM() 
+{
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
     Xoroshiro x2 = { 145982789338521ULL, 70932749124324ULL };
 
@@ -251,6 +252,29 @@ int main() {
     printXoro(&x3);
     advanceXoroshiroFXTM(&x3, &fxtm); // 2^128 - 1
     printXoro(&x3);
+
+    return 0;
+}
+
+int main()
+{
+    Equation eqnsTest[4];
+    initEquation(eqnsTest, 0xfULL, 11ULL, 1);
+    initEquation(eqnsTest+1, 0x7ULL, 22ULL, 0);
+    initEquation(eqnsTest+2, 0xaULL, 15ULL, 1);
+    initEquation(eqnsTest+3, 0x3ULL, 9ULL, 0);
+
+    Solution result;
+    gaussianElimGF2(eqnsTest, 4, &result);
+
+    if (result.isContradictory)
+    {
+        printf("No solutions exist.\n");
+        return 0;
+    }
+
+    printf("Reduced equation count: %d\n", result.equationCount);
+    printf("Known variables: %d, parameters: %d\n", result.knownVariableCount, result.parameterCount);
 
     return 0;
 }

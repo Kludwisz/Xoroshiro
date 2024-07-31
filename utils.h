@@ -10,7 +10,7 @@
 
 #define DEBUG(...) { \
     if (DEBUG_MODE) { \
-        printf("%s %d", __FILE__, __LINE__); \
+        printf("%s %d   ", __FILE__, __LINE__); \
         printf(__VA_ARGS__); \
     } \
 }
