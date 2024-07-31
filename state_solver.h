@@ -17,6 +17,6 @@ void initParamsFromFile(ParameterSet *obj, const char* filename);
 
 int solveForStartingState(const ParameterSet* paramSet, Solution* sol);
 
-ParameterSet* genRandomParamSet(uint64_t seed);
+ParameterSet* genRandomParamSet(uint64_t seed, Xoroshiro state);
 int testSolverCorrectness(uint64_t seed);
 int batchTestSolverCorrectness(int testCount);
