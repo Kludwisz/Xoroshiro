@@ -23,17 +23,42 @@ void freeParamSet(ParameterSet *obj)
     free(obj->bitValues);
 }
 
+void initParamsFromFile(ParameterSet *obj, const char *filename)
+{
+    // TODO
+}
+
 // ------------------------------------------------------------
 
-ParameterSet* genRandomParamSet(uint64_t seed)
+int solveForStartingState(const ParameterSet *paramSet, Solution *sol)
 {
-    ParameterSet ps;
+    // TODO
+    return 0;
+}
 
+// ------------------------------------------------------------
+
+ParameterSet *genRandomParamSet(uint64_t seed)
+{
+    ParameterSet* ps = (ParameterSet*)malloc(sizeof(ParameterSet));
+
+    int size = 120 + (rand() % 10);
+    initParamSet(ps, size);
+
+    // TODO
+
+    return ps;
 }
 
 int testSolverCorrectness(uint64_t seed)
 {
     srand((int)seed);
+    ParameterSet* ps = getRandomParamSet(seed);
+
+    // TODO
+
+    freeParamSet(ps);
+    free(ps);
     return 0;
 }
 
