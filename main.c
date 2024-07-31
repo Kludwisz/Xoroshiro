@@ -6,6 +6,11 @@ static const bool DEBUG_MODE = false;
 
 // -----------------------------------------------------------------------------------
 
+void printXoro(const Xoroshiro* state)
+{
+    printf("Current Xoroshiro state:   ( %llu, %llu )\n", state->lo, state->hi);
+}
+
 int testFXTM() 
 {
     Xoroshiro x = { 145982789338521ULL, 70932749124324ULL };
