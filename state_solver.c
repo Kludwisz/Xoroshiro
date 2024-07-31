@@ -44,6 +44,17 @@ void getAllXoroshiroStates(const Solution* sol, Xoroshiro* states)
 
     for (uint64_t paramValues = 0ULL; paramValues < maxParamVal; paramValues++)
     {
+        // put the param values into the finalState array
+        uint64_t pTemp = paramValues;
+        for (int i = 127; i >= 0; i--)
+        {
+            if (!sol->isParameter[i])
+                continue;
+            
+            finalState[i] = pTemp & 1ULL;
+            pTemp >>= 1;
+        }
+
         // "replace" parameters in the solution with values from paramValues
         // to calculate the final result
         for (int eqID = 0; eqID < sol->equationCount; eqID++)
@@ -81,6 +92,20 @@ void getAllXoroshiroStates(const Solution* sol, Xoroshiro* states)
                 }
             }
         }
+
+        // add the result
+        uint64_t lo = 0ULL;
+        uint64_t hi = 0ULL;
+        for (int i = 63; i >= 0; i--)
+        {
+            lo <<= 1;
+            hi <<= 1;
+            lo |= finalState[i];
+            hi |= finalState[64 + i];
+        }
+
+        states[paramValues].lo = lo;
+        states[paramValues].hi = hi;
     }
 }
 
