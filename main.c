@@ -1,6 +1,7 @@
 #include "xoro_matrix.h"
 #include "xoroshiro.h"
 #include "gaussian_elim.h"
+#include "state_solver.h"
 #include "utils.h"
 static const bool DEBUG_MODE = false;
 
@@ -62,7 +63,9 @@ int testEquationSysSolver() {
 
 int main()
 {
-    testFXTM();
-    testEquationSysSolver();
-    return 0;
+    // testFXTM();
+    // testEquationSysSolver();
+    // return 0;
+
+    return batchTestSolverCorrectness(100);
 }

@@ -3,7 +3,7 @@
 #include "xoroshiro.h"
 #include "xoro_matrix.h"
 #include "utils.h"
-const bool DEBUG_MODE = true;
+const bool DEBUG_MODE = false;
 
 #include "time.h"
 
@@ -32,7 +32,34 @@ void initParamsFromFile(ParameterSet *obj, const char *filename)
 
 int solveForStartingState(const ParameterSet *paramSet, Solution *sol)
 {
-    // TODO
+    Equation* eqns = malloc(paramSet->paramCount * sizeof(Equation));
+
+    // create all the equations
+    FXTMatrix fxtm = { 0 }, fxtmTransposed = { 0 };
+
+    for (int i = 0; i < paramSet->paramCount; i++)
+    {
+        int advanceCount = paramSet->stateIDs[i];
+        fastXoroMatrixPower(&XOROSHIRO_STANDARD_FXTM, advanceCount, &fxtm);
+        transposeFXTM(&fxtm, &fxtmTransposed);
+
+        const int bid = paramSet->bitIDs[i] % 64; // unsure
+        const int qj = paramSet->bitIDs[i] >= 64 ? 1 : 0;
+        uint64_t lo = fxtmTransposed.M[0][qj][bid];
+        uint64_t hi = fxtmTransposed.M[1][qj][bid];
+
+        initEquation(&(eqns[i]), lo, hi, paramSet->bitValues[i]);
+        // DEBUG("Equation:  %llu %llu  =  %d\n", eqns[i].lhs[0], eqns[i].lhs[1], eqns[i].rhs)
+    }
+
+    // use gaussian elimination to solve the system
+    if (gaussianElimGF2(eqns, paramSet->paramCount, sol) != 0)
+    {
+        free(eqns);
+        return -1;
+    }
+
+    free(eqns);
     return 0;
 }
 
@@ -68,7 +95,7 @@ void getAllXoroshiroStates(const Solution* sol, Xoroshiro* states)
                 uint64_t flag = 1ULL;
                 for (int i = 63; i >= 0; i--, flag <<= 1)
                 {
-                    if (!sol->isParameter[i])
+                    if (!sol->isParameter[i + seg*64])
                         continue;
 
                     if ((sol->equations[eqID].lhs[seg] & flag) != 0ULL)
@@ -96,7 +123,7 @@ void getAllXoroshiroStates(const Solution* sol, Xoroshiro* states)
         // add the result
         uint64_t lo = 0ULL;
         uint64_t hi = 0ULL;
-        for (int i = 63; i >= 0; i--)
+        for (int i = 0; i < 64; i++)
         {
             lo <<= 1;
             hi <<= 1;
@@ -111,7 +138,7 @@ void getAllXoroshiroStates(const Solution* sol, Xoroshiro* states)
 
 // ------------------------------------------------------------
 
-ParameterSet* genRandomParamSet(uint64_t seed, Xoroshiro state)
+ParameterSet* genRandomParamSet(uint64_t seed, const Xoroshiro state)
 {
     ParameterSet* ps = (ParameterSet*)malloc(sizeof(ParameterSet));
 
@@ -133,8 +160,10 @@ ParameterSet* genRandomParamSet(uint64_t seed, Xoroshiro state)
         int bitID = rand() % 128;
 
         const uint64_t stateForBit = bitID >= 64 ? tempState.hi : tempState.lo;
-        const int sh = (bitID % 64);
+        const int sh = 63 - (bitID % 64);
         const int bitValue = (stateForBit >> sh) & 1ULL;
+
+        // DEBUG("Gen param set:  bitID = %d, stateForBit = %016llx, bitVal = %d\n", bitID, stateForBit, bitValue)
 
         ps->stateIDs[i] = stateID;
         ps->bitIDs[i] = bitID;
@@ -147,11 +176,17 @@ ParameterSet* genRandomParamSet(uint64_t seed, Xoroshiro state)
 int testSolverCorrectness(uint64_t seed)
 {
     srand((int)seed);
-    Xoroshiro state = { rand() * rand() + 1, rand() * rand() + 1 };
-    ParameterSet* ps = getRandomParamSet(seed, state);
+    const Xoroshiro state = { rand() * rand() + 1, rand() * rand() + 1 };
+    ParameterSet* ps = genRandomParamSet(seed, state);
 
     Solution sol;
     solveForStartingState(ps, &sol);
+
+    if (sol.isContradictory)
+    {
+        DEBUG("Unexpected contradiction in equation system\n")
+        return 1;
+    }
 
     int log2Sols = sol.parameterCount;
     if (log2Sols > 16)
@@ -163,12 +198,22 @@ int testSolverCorrectness(uint64_t seed)
     uint64_t maxParamValue = 1ULL << log2Sols;
     Xoroshiro* possibleStates = (Xoroshiro*)malloc(maxParamValue * sizeof(Xoroshiro));
     
-    
+    getAllXoroshiroStates(&sol, possibleStates);
+
+    DEBUG("Got %llu possible solutions\n", maxParamValue)
+
+    bool found = false;
+    for (int i = 0; i < maxParamValue; i++)
+        if (possibleStates[i].lo == state.lo && possibleStates[i].hi == state.hi)
+            found = true;
+
+    DEBUG("Checked all, found = %d\n", found)
 
     freeParamSet(ps);
     free(ps);
     free(possibleStates);
-    return 0;
+
+    return found ? 0 : 1;
 }
 
 int batchTestSolverCorrectness(int testCount)
@@ -184,5 +229,7 @@ int batchTestSolverCorrectness(int testCount)
         }
         DEBUG("Test %d OK!\n", i)
     }
+
+    printf("Passed %d random tests.\n", testCount);
     return 0;
 }
