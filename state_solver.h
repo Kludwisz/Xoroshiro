@@ -18,6 +18,8 @@ void initParamsFromFile(ParameterSet *obj, const char* filename);
 
 int solveForStartingState(const ParameterSet* paramSet, Solution* sol);
 
+void getAllXoroshiroStates(const Solution *sol, Xoroshiro *states);
+
 ParameterSet* genRandomParamSet(uint64_t seed, const Xoroshiro state);
 int testSolverCorrectness(uint64_t seed);
 int batchTestSolverCorrectness(int testCount);

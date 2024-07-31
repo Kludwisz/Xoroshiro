@@ -61,11 +61,83 @@ int testEquationSysSolver() {
     return 0;
 }
 
+int testSolverWithFileInput()
+{
+    ParameterSet pSet;
+    initParamsFromFile(&pSet, "input\\example.txt");
+    Solution sol;
+    solveForStartingState(&pSet, &sol);
+
+    uint64_t maxParamValue = 1ULL << sol.knownVariableCount;
+    Xoroshiro* possibleStates = (Xoroshiro*)malloc(maxParamValue * sizeof(Xoroshiro));
+    getAllXoroshiroStates(&sol, possibleStates);
+
+    for (int i = 0; i < maxParamValue; i++)
+    {
+        printf("Found possible Xoroshiro state: ( 0x%llx , 0x%llx )\n", possibleStates[i].lo, possibleStates[i].hi);
+    }
+
+    freeParamSet(&pSet);
+}
+
 int main()
 {
+    testSolverWithFileInput();
     // testFXTM();
     // testEquationSysSolver();
     // return 0;
 
-    return batchTestSolverCorrectness(100);
+    // return batchTestSolverCorrectness(100);
+
+    // Xoroshiro state = { 0xdeadbeef, 0xdeadbeef };
+
+    // for (int i = 0; i < 10; i++) {
+    //     xNextLong(&state);
+    //     printf("%d: %d %d\n", i+1, (state.lo >> i) & 1, 63-i);
+    //     printf("%d: %d %d\n", i+1, (state.hi >> (63-i)) & 1, i+64);
+    // }
+
+    // state.lo = 0xdeadbeef;
+    // state.hi = 0xdeadbeef;
+
+    // for (int i = 0; i < 271; i++)
+    //     xNextLong(&state);
+
+    // printf("271: hi >> 32: %08llx\n", state.hi >> 32);
+    // uint64_t v = state.hi >> 32;
+    // for (int i = 95; i >= 64; i--, v >>= 1)
+    //     printf("%d %d %d\n", 271, i, v&1);
+
+    // state.lo = 0xdeadbeef;
+    // state.hi = 0xdeadbeef;
+
+    // for (int i = 0; i < 314; i++)
+    //     xNextLong(&state);
+
+    // printf("314: lo >> 32: %08llx\n", state.lo >> 32);
+    // v = state.lo >> 32;
+    // for (int i = 31; i >= 0; i--, v >>= 1)
+    //     printf("%d %d %d\n", 314, i, v&1);
+
+    // state.lo = 0xdeadbeef;
+    // state.hi = 0xdeadbeef;
+
+    // for (int i = 0; i < 27182; i++)
+    //     xNextLong(&state);
+
+    // printf("27182: bits 0-11: %x\n", (int)(state.hi >> (63 - 11)));
+    // v = state.hi >> (63 - 11);
+    // for (int i = 11+64; i >= 64; i--, v >>= 1)
+    //     printf("%d %d %d\n", 27182, i, v&1);
+
+    // state.lo = 0xdeadbeef;
+    // state.hi = 0xdeadbeef;
+
+    // for (int i = 0; i < 31415; i++)
+    //     xNextLong(&state);
+
+    // printf("31415: hi >> 32: %08x\n", (int)(state.hi >> 32));
+    // v = state.hi >> 32;
+    // for (int i = 95; i >= 64; i--, v >>= 1)
+    //     printf("%d %d %d\n", 31415, i, v&1);
 }

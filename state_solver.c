@@ -25,7 +25,26 @@ void freeParamSet(ParameterSet *obj)
 
 void initParamsFromFile(ParameterSet *obj, const char *filename)
 {
-    // TODO
+    FILE* fptr = fopen(filename, "r");
+
+    // calc num of entries
+    int entries = 0, temp;
+    while (fscanf(fptr, "%d", &temp) > 0) 
+        entries++;
+    fclose(fptr);
+
+    int equations = entries / 3;
+
+    initParamSet(obj, equations);
+
+    for (int i = 0; i < equations; i++)
+    {
+        fscanf(fptr, "%d", &(obj->stateIDs[i]));
+        fscanf(fptr, "%d", &(obj->bitIDs[i]));
+        fscanf(fptr, "%d", &(obj->bitValues[i]));
+    }
+
+    fclose(fptr);
 }
 
 // ------------------------------------------------------------
@@ -185,6 +204,8 @@ int testSolverCorrectness(uint64_t seed)
     if (sol.isContradictory)
     {
         DEBUG("Unexpected contradiction in equation system\n")
+        freeParamSet(ps);
+        free(ps);
         return 1;
     }
 
@@ -192,6 +213,8 @@ int testSolverCorrectness(uint64_t seed)
     if (log2Sols > 16)
     {
         DEBUG("Suspicious amount of solutions: log2(sols) = %d\n", log2Sols)
+        freeParamSet(ps);
+        free(ps);
         return 1;
     }
 
