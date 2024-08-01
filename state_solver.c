@@ -27,6 +27,12 @@ void initParamsFromFile(ParameterSet *obj, const char *filename)
 {
     FILE* fptr = fopen(filename, "r");
 
+    if (fptr == NULL)
+    {
+        DEBUG("File not found.\n")
+        return;
+    }
+        
     // calc num of entries
     int entries = 0, temp;
     while (fscanf(fptr, "%d", &temp) > 0) 
@@ -34,9 +40,11 @@ void initParamsFromFile(ParameterSet *obj, const char *filename)
     fclose(fptr);
 
     int equations = entries / 3;
+    DEBUG("Equations in total: %d\n", equations)
 
     initParamSet(obj, equations);
 
+    fptr = fopen(filename, "r");
     for (int i = 0; i < equations; i++)
     {
         fscanf(fptr, "%d", &(obj->stateIDs[i]));
@@ -44,6 +52,7 @@ void initParamsFromFile(ParameterSet *obj, const char *filename)
         fscanf(fptr, "%d", &(obj->bitValues[i]));
     }
 
+    DEBUG("File input success!\n")
     fclose(fptr);
 }
 

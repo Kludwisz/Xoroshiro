@@ -68,9 +68,16 @@ int testSolverWithFileInput()
     Solution sol;
     solveForStartingState(&pSet, &sol);
 
-    uint64_t maxParamValue = 1ULL << sol.knownVariableCount;
+    uint64_t maxParamValue = 1ULL << sol.parameterCount;
+    DEBUG("Got %llu possible states!\n", maxParamValue)
+
     Xoroshiro* possibleStates = (Xoroshiro*)malloc(maxParamValue * sizeof(Xoroshiro));
+    if (possibleStates == NULL)
+        DEBUG("Malloc failed!\n")
+
+    DEBUG("Calling getAllStates...\n")
     getAllXoroshiroStates(&sol, possibleStates);
+    DEBUG("Done!\n")
 
     for (int i = 0; i < maxParamValue; i++)
     {
@@ -78,6 +85,8 @@ int testSolverWithFileInput()
     }
 
     freeParamSet(&pSet);
+    free(possibleStates);
+    return 0;
 }
 
 int main()
